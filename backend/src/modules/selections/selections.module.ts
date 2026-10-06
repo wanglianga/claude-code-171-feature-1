@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { IsInt, IsNotEmpty, IsOptional, Max, Min } from 'class-validator';
 import { Selection } from '../../entities/selection.entity';
 import { Batch } from '../../entities/batch.entity';
+import { HarvestTask } from '../../entities/harvest-task.entity';
 import { Roles } from '../../common/decorators';
 import { ReqUser } from '../../common/req-user.decorator';
 
@@ -31,6 +32,7 @@ export class SelectionsService {
   constructor(
     @InjectRepository(Selection) private selections: Repository<Selection>,
     @InjectRepository(Batch) private batches: Repository<Batch>,
+    @InjectRepository(HarvestTask) private harvestTasks: Repository<HarvestTask>,
   ) {}
 
   /** 选品决策：样品试吃评分 + 质检结论，写回批次状态 */
@@ -59,6 +61,14 @@ export class SelectionsService {
     const saved = await this.selections.save(rec);
     batch.status = dto.decision === 'selected' ? 'qc_passed' : 'qc_failed';
     await this.batches.save(batch);
+
+    // 追加采摘批次必须重新质检：质检结论回写采摘任务（合格后才能补分配）
+    if (batch.isSupplement) {
+      await this.harvestTasks.update(
+        { supplementBatchId: batch.id },
+        { status: dto.decision === 'selected' ? 'qc_passed' : 'qc_failed' },
+      );
+    }
     return saved;
   }
 
@@ -90,7 +100,7 @@ export class SelectionsController {
 }
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Selection, Batch])],
+  imports: [TypeOrmModule.forFeature([Selection, Batch, HarvestTask])],
   controllers: [SelectionsController],
   providers: [SelectionsService],
 })

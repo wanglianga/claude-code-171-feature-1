@@ -32,6 +32,12 @@
             <el-tag size="small" :type="{ paid: 'warning', shipped: 'primary', delivered: 'success', refunded: 'danger' }[row.status] || 'info'">{{ statusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="爆单履约" width="100">
+          <template #default="{ row }">
+            <el-tag v-if="row.fulfillStatus" size="small" :type="fulfillTag(row.fulfillStatus)">{{ fulfillText(row.fulfillStatus) }}</el-tag>
+            <span v-else class="sub">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="下单时间" width="150">
           <template #default="{ row }">{{ fmtTime(row.createdAt) }}</template>
         </el-table-column>
@@ -57,6 +63,12 @@ const loading = ref(false);
 
 function statusText(s) {
   return { paid: '已支付', shipped: '已发货', delivered: '已送达', refunded: '已退款', completed: '已完成' }[s] || s;
+}
+function fulfillText(s) {
+  return { allocated: '已分配', delayed: '延迟通知', waiting: '等待补单', spec_changed: '已换规格', refund_pending: '退款中', fulfilled: '补单已排发' }[s] || s;
+}
+function fulfillTag(s) {
+  return { allocated: 'success', delayed: 'danger', waiting: 'warning', spec_changed: 'warning', refund_pending: 'danger', fulfilled: 'primary' }[s] || 'info';
 }
 function fmtTime(t) { return t ? String(t).replace('T', ' ').slice(0, 16) : ''; }
 

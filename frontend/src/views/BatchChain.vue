@@ -78,6 +78,36 @@
             </div>
           </el-timeline-item>
 
+          <!-- 爆单分配与追加采摘 -->
+          <el-timeline-item v-if="chain.allocations?.length || chain.harvestTasks?.length || chain.batch.isSupplement" type="danger" placement="top">
+            <b>爆单库存分配与追加采摘</b>
+            <div class="stage">
+              <div v-if="chain.allocations?.length" class="line">
+                本批次分配 {{ chain.allocationStats.allocated + chain.allocationStats.fulfilled }} 单
+                （按时 {{ chain.allocationStats.allocated }} · 追加批次补 {{ chain.allocationStats.fulfilled }}），
+                <span style="color: #f56c6c">延迟 {{ chain.allocationStats.delayed }} 单</span>
+                <el-button size="small" type="danger" plain @click="$router.push(`/allocations?livestream=${chain.livestreams[0]?.id || ''}`)">去爆单分配</el-button>
+              </div>
+              <div v-for="h in chain.harvestTasks" :key="h.id" class="line">
+                <el-tag size="small" type="warning">追加采摘 {{ h.requiredQty }} 件</el-tag>
+                成熟度≥{{ h.requiredMaturityGrade }}/5 · {{ h.farmerNote || '等待农户交付' }}
+                <el-tag size="small" :type="{ issued: 'info', accepted: 'warning', delivered: 'danger', qc_passed: 'success', qc_failed: 'danger' }[h.status]">
+                  {{ { issued: '已下达', accepted: '已接单', delivered: '已交付待复检', qc_passed: '复检合格', qc_failed: '复检不合格' }[h.status] }}
+                </el-tag>
+                <el-button v-if="h.supplementBatchId" link type="primary" size="small" @click="$router.push(`/chain/${h.supplementBatchId}`)">追加批次</el-button>
+              </div>
+              <div v-for="sb in chain.supplementBatches" :key="sb.id" class="line">
+                <el-tag size="small" :type="sb.status === 'qc_passed' ? 'success' : 'danger'">{{ sb.batchNo }}</el-tag>
+                追加批次状态：{{ batchText(sb.status) }}——{{ sb.status === 'qc_passed' ? '已重新质检，可补发货' : '尚未重新质检，禁止混入已锁定批次发货' }}
+              </div>
+              <div v-if="chain.batch.isSupplement" class="line">
+                <el-tag size="small" type="danger" effect="dark">本批次为追加采摘批次</el-tag>
+                来源批次 <el-button link type="primary" size="small" @click="$router.push(`/chain/${chain.batch.sourceBatchId}`)">{{ chain.batch.sourceBatchId }}</el-button>
+                ，{{ chain.selections.length ? '已完成重新质检' : '必须重新质检合格后才能发货' }}
+              </div>
+            </div>
+          </el-timeline-item>
+
           <!-- 5 售后 -->
           <el-timeline-item :type="chain.aftersalesStats.total ? 'danger' : 'success'" :hollow="!chain.aftersalesStats.total" placement="top">
             <b>⑤ 售后工单（{{ chain.aftersalesStats.total }} 件，退款 ¥{{ chain.aftersalesStats.refund }}）</b>

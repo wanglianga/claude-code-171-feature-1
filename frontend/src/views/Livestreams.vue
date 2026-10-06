@@ -43,6 +43,7 @@
               <el-button size="small" link type="success" @click="simulate(row)">模拟下单</el-button>
               <el-button size="small" link type="warning" @click="end(row)">结束</el-button>
             </template>
+            <el-button v-if="['live', 'ended'].includes(row.status)" size="small" type="danger" plain @click="$router.push(`/allocations?livestream=${row.id}`)">爆单分配</el-button>
             <el-button v-if="['live', 'ended'].includes(row.status)" size="small" link type="danger" @click="openMismatch(row)">承诺不符</el-button>
             <el-button v-if="row.status === 'ended'" size="small" link type="success" @click="genSettlement(row)">结算</el-button>
           </template>

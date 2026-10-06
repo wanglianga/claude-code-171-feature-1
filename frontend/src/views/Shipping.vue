@@ -7,6 +7,7 @@
           <el-radio-group v-model="filter" size="small" @change="load">
             <el-radio-button value="">全部</el-radio-button>
             <el-radio-button value="pending">待发货</el-radio-button>
+            <el-radio-button value="waiting_stock">等待补库</el-radio-button>
             <el-radio-button value="shipped">已发货</el-radio-button>
             <el-radio-button value="delivered">已送达</el-radio-button>
             <el-radio-button value="exception">异常</el-radio-button>
@@ -38,8 +39,8 @@
         <el-table-column prop="promiseText" label="随单承诺" min-width="140" show-overflow-tooltip />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag size="small" :type="{ pending: 'warning', shipped: 'primary', in_transit: 'primary', delivered: 'success', exception: 'danger' }[row.status]">
-              {{ { pending: '待发货', shipped: '已发货', in_transit: '运输中', delivered: '已送达', exception: '异常' }[row.status] }}
+            <el-tag size="small" :type="{ pending: 'warning', waiting_stock: 'danger', cancelled: 'info', shipped: 'primary', in_transit: 'primary', delivered: 'success', exception: 'danger' }[row.status]">
+              {{ { pending: '待发货', waiting_stock: '等待补库(延迟)', cancelled: '已取消', shipped: '已发货', in_transit: '运输中', delivered: '已送达', exception: '异常' }[row.status] }}
             </el-tag>
           </template>
         </el-table-column>

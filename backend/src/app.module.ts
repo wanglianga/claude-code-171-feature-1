@@ -11,6 +11,7 @@ import { SelectionsModule } from './modules/selections/selections.module';
 import { LivestreamsModule } from './modules/livestreams/livestreams.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { AllocationsModule } from './modules/allocations/allocations.module';
 import { ShippingModule } from './modules/shipping/shipping.module';
 import { AftersalesModule } from './modules/aftersales/aftersales.module';
 import { SettlementsModule } from './modules/settlements/settlements.module';
@@ -43,6 +44,7 @@ import { SeedModule } from './seed/seed.module';
     LivestreamsModule,
     InventoryModule,
     OrdersModule,
+    AllocationsModule,
     ShippingModule,
     AftersalesModule,
     SettlementsModule,

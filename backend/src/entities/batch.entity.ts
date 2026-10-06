@@ -69,6 +69,18 @@ export class Batch {
   @Column({ default: 'pending' })
   status: string;
 
+  /** 采摘成熟度等级（1-5，5 为最佳食用成熟度；爆单分配按成熟度优先出） */
+  @Column('int', { name: 'maturity_grade', nullable: true })
+  maturityGrade: number;
+
+  /** 是否为爆单后的追加采摘批次（追加批次必须重新质检，不得直接混入已锁定批次） */
+  @Column({ name: 'is_supplement', default: false })
+  isSupplement: boolean;
+
+  /** 追加批次对应的缺口来源批次 */
+  @Column({ name: 'source_batch_id', nullable: true })
+  sourceBatchId: number;
+
   /** 坏果率（售后坏果工单/已售 动态计算） */
   @Column('float', { name: 'defect_rate', default: 0 })
   defectRate: number;

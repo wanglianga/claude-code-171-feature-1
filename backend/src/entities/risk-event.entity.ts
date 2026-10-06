@@ -12,6 +12,7 @@ export const RISK_TYPES: Record<string, string> = {
   coldchain_late: '冷链车晚到',
   defect_rising: '同批次坏果率升高',
   promise_mismatch: '主播承诺与规格不符',
+  allocation_delay: '爆单延迟发货',
 };
 
 @Entity('risk_events')

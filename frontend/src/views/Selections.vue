@@ -8,7 +8,12 @@
         </div>
       </template>
       <el-table :data="pending" size="small">
-        <el-table-column prop="batchNo" label="批次号" width="160" />
+        <el-table-column prop="batchNo" label="批次号" width="210">
+          <template #default="{ row }">
+            {{ row.batchNo }}
+            <el-tag v-if="row.isSupplement" size="small" type="danger" effect="dark" style="margin-left: 4px">追加批次·须重新质检</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="商品" min-width="130">
           <template #default="{ row }">{{ row.product?.name }}<div class="sub">{{ row.product?.category }} · {{ row.product?.spec }}</div></template>
         </el-table-column>

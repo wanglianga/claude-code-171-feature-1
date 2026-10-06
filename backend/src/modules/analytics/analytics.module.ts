@@ -13,6 +13,8 @@ import { Aftersale } from '../../entities/aftersale.entity';
 import { Settlement } from '../../entities/settlement.entity';
 import { RiskEvent } from '../../entities/risk-event.entity';
 import { FeedbackDecision } from '../../entities/feedback-decision.entity';
+import { OrderAllocation } from '../../entities/order-allocation.entity';
+import { HarvestTask } from '../../entities/harvest-task.entity';
 import { Roles } from '../../common/decorators';
 
 @Injectable()
@@ -30,6 +32,8 @@ export class AnalyticsService {
     @InjectRepository(Settlement) private settlements: Repository<Settlement>,
     @InjectRepository(RiskEvent) private risks: Repository<RiskEvent>,
     @InjectRepository(FeedbackDecision) private decisions: Repository<FeedbackDecision>,
+    @InjectRepository(OrderAllocation) private allocations: Repository<OrderAllocation>,
+    @InjectRepository(HarvestTask) private harvestTasks: Repository<HarvestTask>,
   ) {}
 
   async overview() {
@@ -237,6 +241,17 @@ export class AnalyticsService {
         this.risks.find({ where: { batchId }, order: { id: 'ASC' } }),
         this.decisions.find({ where: { batchId }, order: { id: 'ASC' } }),
       ]);
+    // 爆单分配：本批次承担的分配 + 本批次缺口引发的追加采摘任务
+    // （追加批次自身则通过 supplementBatchId 反查交付它的采摘任务）
+    const [allocationRecs, harvestTaskRecs, supplementBatches] = await Promise.all([
+      this.allocations.find({ where: { batchId }, order: { id: 'ASC' } }),
+      this.harvestTasks
+        .createQueryBuilder('h')
+        .where('h.source_batch_id = :id OR h.supplement_batch_id = :id', { id: batchId })
+        .orderBy('h.id', 'ASC')
+        .getMany(),
+      batch.isSupplement ? [] : this.batches.find({ where: { sourceBatchId: batchId } }),
+    ]);
     const gmv = orders.reduce((s, o) => s + Number(o.amount), 0);
     const refund = tickets
       .filter((t) => t.status === 'resolved')
@@ -268,6 +283,15 @@ export class AnalyticsService {
       settlements,
       risks,
       decisions,
+      allocations: allocationRecs,
+      allocationStats: {
+        total: allocationRecs.length,
+        allocated: allocationRecs.filter((a) => a.status === 'allocated').length,
+        fulfilled: allocationRecs.filter((a) => a.status === 'fulfilled').length,
+        delayed: allocationRecs.filter((a) => a.status === 'delayed').length,
+      },
+      harvestTasks: harvestTaskRecs,
+      supplementBatches,
     };
   }
 }
@@ -310,6 +334,7 @@ export class AnalyticsController {
     TypeOrmModule.forFeature([
       Farmer, Product, Batch, Selection, Livestream, InventoryLock,
       Order, ShippingTask, Aftersale, Settlement, RiskEvent, FeedbackDecision,
+      OrderAllocation, HarvestTask,
     ]),
   ],
   controllers: [AnalyticsController],

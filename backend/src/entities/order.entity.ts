@@ -44,6 +44,14 @@ export class Order {
   @Column({ default: 'paid' })
   status: string;
 
+  /**
+   * 爆单分配履约标记（普通订单为空）：
+   * allocated(已按时分配) / delayed(延迟通知中) / waiting(用户选择等待补单)
+   * spec_changed(已换规格) / refund_pending(退款处理中) / fulfilled(追加批次补单已排发货)
+   */
+  @Column({ name: 'fulfill_status', nullable: true })
+  fulfillStatus: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

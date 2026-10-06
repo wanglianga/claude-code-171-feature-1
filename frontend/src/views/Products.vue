@@ -63,7 +63,12 @@
         </div>
       </template>
       <el-table :data="batches" size="small">
-        <el-table-column prop="batchNo" label="批次号" width="160" />
+        <el-table-column prop="batchNo" label="批次号" width="200">
+          <template #default="{ row }">
+            {{ row.batchNo }}
+            <el-tag v-if="row.isSupplement" size="small" type="danger" effect="plain" style="margin-left: 4px">追加·待复检</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="商品" min-width="130">
           <template #default="{ row }">{{ row.product?.name }}</template>
         </el-table-column>
