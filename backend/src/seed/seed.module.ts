@@ -274,6 +274,60 @@ export class SeedService implements OnApplicationBootstrap {
       this.decisions.create({ aftersaleId: savedTickets[18].id, batchId: b5.id, decisionType: 'drop_farmer', decision: '刘记腊味坊暂停排播一场，待复检报告与整改说明后评估', createdBy: ops.id }),
       this.decisions.create({ aftersaleId: savedTickets[0].id, batchId: b1.id, decisionType: 'reduce_presale', decision: '苹果下一场预售量由 200 下调至 180，并增加出库抽检比例至 10%', createdBy: users[7].id }),
     ]);
+
+    // ---------- 爆单演示场景：赣南脐橙直播销量超预估两倍 ----------
+    // 两个规格（5kg 箱装 / 9 枚礼盒装），用于「换规格」选择
+    const [p7, p8] = await this.products.save([
+      this.products.create({ name: '赣南脐橙', category: '水果', origin: '青云山乡脐橙基地', spec: '5kg/箱 单果180g+', unit: '箱', shelfLifeDays: 25, coldChainRequired: true, tempZone: '冷藏', packagingType: '泡沫托+纸箱', pressureResistance: '中', description: '现摘脐橙，糖度13+', status: 'approved', farmerId: f1.id }),
+      this.products.create({ name: '脐橙精品礼盒', category: '水果', origin: '青云山乡脐橙基地', spec: '9枚装 单果250g+', unit: '盒', shelfLifeDays: 20, coldChainRequired: true, tempZone: '冷藏', packagingType: '礼盒+珍珠棉', pressureResistance: '高', description: '精品大果礼盒，送礼适用', status: 'approved', farmerId: f1.id }),
+    ]);
+    // OC-01 主批次已穿仓（供货 200，锁定 150，售出 360）；OC-02 备选已质检；OC-G1 礼盒现货（换规格池）
+    const [oc1, oc2, ocG1] = await this.batches.save([
+      this.batches.create({ batchNo: 'B20261002-OC-01', productId: p7.id, quantity: 200, availableQty: 0, soldQty: 360, harvestDate: '2026-10-02', harvestWindowEnd: '2026-10-30', supplyPrice: 26, testReportNo: 'JC-2026-0930', testReportExpiry: '2026-12-31', livestreamAvailable: true, status: 'on_sale', defectRate: 0 }),
+      this.batches.create({ batchNo: 'B20261005-OC-02', productId: p7.id, quantity: 120, availableQty: 120, soldQty: 0, harvestDate: '2026-10-05', harvestWindowEnd: '2026-11-02', supplyPrice: 26, testReportNo: 'JC-2026-1003', testReportExpiry: '2027-01-10', livestreamAvailable: true, status: 'qc_passed', defectRate: 0 }),
+      this.batches.create({ batchNo: 'B20261003-OC-G1', productId: p8.id, quantity: 60, availableQty: 60, soldQty: 0, harvestDate: '2026-10-03', harvestWindowEnd: '2026-10-28', supplyPrice: 58, testReportNo: 'JC-2026-1001', testReportExpiry: '2027-01-05', livestreamAvailable: true, status: 'qc_passed', defectRate: 0 }),
+    ]);
+    await this.selections.save([
+      this.selections.create({ batchId: oc2.id, operatorId: ops.id, sampleTasteScore: 9, sampleNotes: '糖度 13.8，化渣好', decision: 'selected', notes: '可作苹果场备选/递补' }),
+      this.selections.create({ batchId: ocG1.id, operatorId: ops.id, sampleTasteScore: 9, sampleNotes: '大果均匀，果面光亮', decision: 'selected', notes: '礼盒装现货' }),
+    ]);
+    const l5 = await this.livestreams.save(
+      this.livestreams.create({ title: '赣南脐橙爆甜专场', batchId: oc1.id, anchorName: '主播小云', scriptSummary: '果园现摘+糖度实测+榨汁演示', promiseText: '现摘现发、坏果包赔、48小时发货', price: 33.9, couponAmount: 4, estimatedSales: 150, actualSales: 360, scheduledAt: new Date('2026-10-05T19:30:00'), status: 'live', sampleTasteDone: true, createdBy: ops.id }),
+    );
+    await this.locks.save(
+      this.locks.create({ livestreamId: l5.id, batchId: oc1.id, lockedQty: 150, packagingMaterial: '泡沫托+纸箱', packagingQty: 160, warehouseName: '县域中心仓', status: 'locked' }),
+    );
+    // 320 笔订单（40 笔 2 件，共 360 件 = 预估 2.4 倍），付款时间沿直播时段梯度分布；
+    // 其中 8 笔收货地在冷藏冷链不可达城市（北京/广州/深圳/成都），用于演示物流时效分配因子
+    const FAR_CITIES = ['北京市', '广州市', '深圳市', '成都市'];
+    const farIdx = new Set([5, 23, 61, 99, 150, 210, 260, 305]);
+    const ocOrders: Partial<Order>[] = [];
+    for (let i = 0; i < 320; i++) {
+      const c = customers[i % customers.length];
+      const city = farIdx.has(i) ? FAR_CITIES[i % FAR_CITIES.length] : c.city;
+      ocOrders.push(this.orders.create({
+        orderNo: this.no('O'),
+        livestreamId: l5.id,
+        batchId: oc1.id,
+        customerName: c.name,
+        phone: c.phone,
+        city,
+        address: `${city}幸福路${(i % 200) + 1}号`,
+        quantity: i % 8 === 0 ? 2 : 1,
+        unitPrice: 33.9,
+        amount: (i % 8 === 0 ? 2 : 1) * (33.9 - 4),
+        status: 'paid',
+      }));
+    }
+    await this.orders.save(ocOrders as Order[]);
+    // 付款时间梯度：10-05 19:35 起每 45 秒一笔
+    await this.orders.query(
+      `UPDATE orders o SET created_at = t.ts FROM (
+         SELECT id, '2026-10-05 19:35:00'::timestamp + (row_number() OVER (ORDER BY id) - 1) * interval '45 seconds' AS ts
+         FROM orders WHERE livestream_id = $1
+       ) t WHERE o.id = t.id`,
+      [l5.id],
+    );
   }
 }
 

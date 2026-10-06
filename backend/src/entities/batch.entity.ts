@@ -73,6 +73,17 @@ export class Batch {
   @Column('float', { name: 'defect_rate', default: 0 })
   defectRate: number;
 
+  /**
+   * 批次来源：normal(常规供货) / picking_extra(爆单追加采摘)。
+   * 追加采摘批次独立建档、必须重新质检，不得混入已锁定批次发货。
+   */
+  @Column({ default: 'normal' })
+  source: string;
+
+  /** 关联的追加采摘任务（source=picking_extra 时存在） */
+  @Column({ name: 'picking_task_id', nullable: true })
+  pickingTaskId: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

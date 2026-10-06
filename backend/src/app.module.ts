@@ -16,6 +16,7 @@ import { AftersalesModule } from './modules/aftersales/aftersales.module';
 import { SettlementsModule } from './modules/settlements/settlements.module';
 import { NoticesModule } from './modules/notices/notices.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SurgeModule } from './modules/surge/surge.module';
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -48,6 +49,7 @@ import { SeedModule } from './seed/seed.module';
     SettlementsModule,
     NoticesModule,
     AnalyticsModule,
+    SurgeModule,
     SeedModule,
   ],
   providers: [

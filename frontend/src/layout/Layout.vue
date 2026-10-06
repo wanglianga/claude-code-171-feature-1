@@ -46,6 +46,7 @@ const allMenus = [
   { path: '/livestreams', title: '直播排期', icon: 'VideoCamera', roles: ['admin', 'operator'] },
   { path: '/inventory', title: '库存锁定', icon: 'Lock', roles: ['admin', 'operator', 'warehouse'] },
   { path: '/orders', title: '订单管理', icon: 'Tickets', roles: ['admin', 'operator'] },
+  { path: '/surge', title: '爆单分配', icon: 'AlarmClock', roles: ['admin', 'operator', 'farmer', 'aftersales'] },
   { path: '/shipping', title: '发货任务', icon: 'Van', roles: ['admin', 'warehouse'] },
   { path: '/aftersales', title: '售后工单', icon: 'Service', roles: ['admin', 'operator', 'aftersales'] },
   { path: '/settlements', title: '农户结算', icon: 'Wallet', roles: ['admin', 'operator', 'farmer'] },

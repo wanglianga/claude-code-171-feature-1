@@ -13,6 +13,7 @@ const routes = [
       { path: 'livestreams', name: 'Livestreams', component: () => import('../views/Livestreams.vue'), meta: { title: '直播排期', icon: 'VideoCamera', roles: ['admin', 'operator'] } },
       { path: 'inventory', name: 'Inventory', component: () => import('../views/Inventory.vue'), meta: { title: '库存锁定', icon: 'Lock', roles: ['admin', 'operator', 'warehouse'] } },
       { path: 'orders', name: 'Orders', component: () => import('../views/Orders.vue'), meta: { title: '订单管理', icon: 'Tickets', roles: ['admin', 'operator'] } },
+      { path: 'surge', name: 'Surge', component: () => import('../views/Surge.vue'), meta: { title: '爆单分配', icon: 'AlarmClock', roles: ['admin', 'operator', 'farmer', 'aftersales'] } },
       { path: 'shipping', name: 'Shipping', component: () => import('../views/Shipping.vue'), meta: { title: '发货任务', icon: 'Van', roles: ['admin', 'warehouse'] } },
       { path: 'aftersales', name: 'Aftersales', component: () => import('../views/Aftersales.vue'), meta: { title: '售后工单', icon: 'Service', roles: ['admin', 'operator', 'aftersales'] } },
       { path: 'settlements', name: 'Settlements', component: () => import('../views/Settlements.vue'), meta: { title: '农户结算', icon: 'Wallet', roles: ['admin', 'operator', 'farmer'] } },
